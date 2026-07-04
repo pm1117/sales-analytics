@@ -1,0 +1,30 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: sales_analytics
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./packages/collector/src/storage/schema.sql:/docker-entrypoint-initdb.d/0001_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d sales_analytics"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  crawler:
+    build: ./services/crawler
+    environment:
+      CRAWLER_PORT: "8000"
+      CRAWL_TIMEOUT_MS: "30000"
+      CRAWLER_MAX_CONCURRENCY: "4"
+      USER_AGENT: "SalesAnalyticsBot/0.1 (+https://example.com/bot; contact: bot@example.com)"
+    ports:
+      - "8000:8000"
+
+volumes:
+  db_data:

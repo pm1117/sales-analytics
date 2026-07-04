@@ -1,0 +1,11 @@
+node_modules/
+*.tsbuildinfo
+.env
+dist/
+.cache/
+__pycache__/
+services/crawler/.venv/
+*.egg-info/
+.pytest_cache/
+poc-output/
+.DS_Store
