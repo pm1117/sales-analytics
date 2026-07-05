@@ -42,9 +42,9 @@
 
 **参考例（リファラル中心・自社サイトにエンジニア求人なし）:**
 
-- パートナープロップ
-  - https://www.wantedly.com/companies/company_9034
-  - https://herp.careers/careers/companies/partnerprop/jobs
+- 自社サイトにエンジニア求人が無く、求人媒体のみで募集している企業（例）
+  - https://www.example-job-board.com/companies/...
+  - https://example-ats.example.com/careers/companies/.../jobs
 
 ---
 
@@ -244,9 +244,9 @@ docs/ui/fit-validation-signals.md を新規作成してください。
     - 「同じエンジニアの職種を、半年以上ずっと募集し続けている」（＝採用できていない、または入ってもすぐ辞めている証拠）。
         - ただし、常にオープンにしておいて良い人が来たらとる企業もあるため、人気企業のはずなのに常にオープンならこのパターンと捉える
         - または求人を出していても完全にリファラルというところもある（コーポレートサイトでエンジニアの求人がなければ避けた方が無難）
-            - 例）パートナープロップ
-            - https://www.wantedly.com/companies/company_9034
-            - https://herp.careers/careers/companies/partnerprop/jobs
+            - 例）自社サイトにエンジニア求人が無く、求人媒体のみで募集している企業
+            - https://www.example-job-board.com/companies/...
+            - https://example-ats.example.com/careers/companies/.../jobs
     - 「未経験可」や「他業種歓迎」と急に条件を緩めた（＝採用に焦ってミスマッチが起きやすい状態）。
     - 大手で大量募集または、大手の完全子会社で2名以上の募集等
 - **組織・口コミシグナル**

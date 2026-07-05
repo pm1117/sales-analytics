@@ -127,7 +127,7 @@ EOF
 - **最初にマージしたいコアロジック**
 
 ### PR5
-- `assess-poc.ts --offline poc-output/bpio.co.jp` が動く（§E-1）
+- `assess-poc.ts --offline poc-output/<sample-domain>` が動く（§E-1）
 - UI なしで仮説検証可能なマイルストーン
 
 ### PR7

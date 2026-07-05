@@ -204,7 +204,7 @@ Markdown 版は「判定 / 主根拠（出典リンク付き）/ 逆指標 / 取
 | 資産 | 扱い |
 |---|---|
 | `packages/collector` | **再利用する。** robots/manners/fetch_log/キャッシュはそのまま。求人媒体向けの取得先追加は adapters の範囲で行う |
-| `poc-output/`（bpio.co.jp 等） | 開発・評価用サンプル。出力フォーマット（summary.json + contents/）の踏襲元 |
+| `poc-output/`（ローカル収集サンプル） | 開発・評価用サンプル。出力フォーマット（summary.json + contents/）の踏襲元 |
 | `docs/product-concept.md` | 参照はするが**要件の根拠にしない**。リサーチカルテ全機能は本 PoC の非スコープ |
 | `docs/ui/fit-validation-signals.md` | 本書 §4 の確定要件。改訂はバージョン管理する |
 

@@ -549,13 +549,13 @@ react-router の 2 ルートのみ。404 は `/` へリダイレクト。
 
 ## E. 評価用
 
-### E-1. `poc-output/bpio.co.jp/` をモック入力に使う手順（オフラインモード）
+### E-1. `poc-output/<sample-domain>/` をモック入力に使う手順（オフラインモード）
 
 extract → judge を収集なし・DB なしで回すモード。プロンプト調整と judge 動作確認のイテレーションを高速化する（LLM 呼び出しのみ課金）。
 
 ```
 # 前提: ANTHROPIC_API_KEY のみ必要（DB・crawler・docker 不要）
-pnpm tsx packages/collector/src/scripts/assess-poc.ts --offline poc-output/bpio.co.jp
+pnpm tsx packages/collector/src/scripts/assess-poc.ts --offline poc-output/<sample-domain>
 ```
 
 動作仕様:
@@ -566,7 +566,7 @@ pnpm tsx packages/collector/src/scripts/assess-poc.ts --offline poc-output/bpio.
 4. `SignalExtractor.extract` → §C-5 の後処理 → `judge` を実行し、`<dir>/fit-judgement.json` と `fit-judgement.md` を書き出す（DB には書かない）
 5. 標準出力に needLevel / 検出シグナル / droppedEvidenceCount / トークン数を要約表示
 
-**bpio.co.jp サンプルの期待結果**: careers・求人媒体コンテンツが無いため `needLevel: "unknown"`（収集最低要件未達）。これ自体が判定行 1（§C-3）の動作確認になる。3-1（新サービスリリース）がプレスリリースから検出されるかがプロンプトの初回確認ポイント。
+**サンプルドメインの期待結果**: careers・求人媒体コンテンツが無いため `needLevel: "unknown"`（収集最低要件未達）。これ自体が判定行 1（§C-3）の動作確認になる。3-1（新サービスリリース）がプレスリリースから検出されるかがプロンプトの初回確認ポイント。
 
 ### E-2. 10 社評価シート（`docs/ui/fit-validation-results.csv` テンプレート）
 
@@ -605,7 +605,7 @@ company_name,domain,human_need_level,human_labeled_at,ai_need_level,match,mismat
 
 | 対象 | 内容 |
 |---|---|
-| `fit-prompt.test.ts` | 固定 fixture（bpio.co.jp の contents から作った小さな `ExtractionInput`）で `buildFitSystemPrompt` / `buildFitUserMessage` の出力文字列を `toMatchSnapshot()`。**目的: 意図しないプロンプト変化の検知**。snapshot 更新を伴う PR では `PROMPT_VERSION` の bump を必須とする（レビュー規約として README に明記）。カタログ 14 件が全件レンダリングされること・引用可能 URL リストが入ることを個別 assert |
+| `fit-prompt.test.ts` | 固定 fixture（サンプルドメインの contents から作った小さな `ExtractionInput`）で `buildFitSystemPrompt` / `buildFitUserMessage` の出力文字列を `toMatchSnapshot()`。**目的: 意図しないプロンプト変化の検知**。snapshot 更新を伴う PR では `PROMPT_VERSION` の bump を必須とする（レビュー規約として README に明記）。カタログ 14 件が全件レンダリングされること・引用可能 URL リストが入ることを個別 assert |
 
 ### F-3. 結合テスト（LLM・ネットワークはモック）
 
@@ -633,7 +633,7 @@ company_name,domain,human_need_level,human_labeled_at,ai_need_level,match,mismat
 6. [ ] `signal-extractor.ts` + モックテスト（§B-1, §F-3）
 7. [ ] `careers-probe.ts` + `SourceEnumerator` seedUrls 対応 + テスト（§C-4-1）
 8. [ ] `fit-assessment-repo.ts` / `fit-orchestrator.ts`（§C-6）
-9. [ ] `scripts/assess-poc.ts`（--offline 含む）→ **ここで bpio.co.jp オフライン確認（§E-1）**
+9. [ ] `scripts/assess-poc.ts`（--offline 含む）→ **ここでサンプルドメインのオフライン確認（§E-1）**
 10. [ ] `server/routes/assessment.ts` + index.ts 配線 + markInterrupted（§A-4, §B-1）
 11. [ ] `packages/web` 一式（§B-3, §D）
 12. [ ] 10 社評価（§E-2 → `docs/ui/fit-validation-results.md` / `.csv`）
@@ -666,7 +666,7 @@ docs/ui/fit-validation-detailed-design.md を作成してください。
 - 状態管理（TanStack Query 等）
 - ローディング中 UX（収集+判定は数分かかる想定）
 ### E. 評価用
-- poc-output/bpio.co.jp/ をモック入力に使う手順
+- poc-output/<sample-domain>/ をモック入力に使う手順
 - 10社評価シート（CSV テンプレ: 企業名, 人間判定, AI判定, メモ）
 ### F. テスト方針
 - プロンプト出力の snapshot テスト
