@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import Anthropic from "@anthropic-ai/sdk";
 import { createLogger, loadEnv } from "@sa/shared";
 import { Db } from "./storage/db";
 import { CompanyRepo } from "./storage/repositories/company-repo";
@@ -26,8 +27,13 @@ import { DossierGenerator } from "./claude/dossier-generator";
 import { createEmbeddingProvider } from "./embedding/provider-factory";
 import { EmbedPipeline } from "./embedding/embed-pipeline";
 import { FreshnessPoller } from "./cron/freshness-poller";
+import { FitAssessmentRepo } from "./storage/repositories/fit-assessment-repo";
+import { CareersProbe } from "./fit/careers-probe";
+import { SignalExtractor } from "./fit/signal-extractor";
+import { FitOrchestrator } from "./fit/fit-orchestrator";
 import { registerHealthRoute } from "./server/routes/health";
 import { registerDossierRoute } from "./server/routes/dossier";
+import { registerAssessmentRoutes } from "./server/routes/assessment";
 
 async function main(): Promise<void> {
   const env = loadEnv();
@@ -115,6 +121,40 @@ async function main(): Promise<void> {
     generator,
   );
 
+  // --- fit 判定 (PoC) ---
+  const fitRepo = new FitAssessmentRepo(db);
+  try {
+    // 孤児化した running を failed に倒す（基本設計 §9 リスク 5）
+    const interrupted = await fitRepo.markInterrupted();
+    if (interrupted > 0) {
+      logger.warn({ interrupted }, "marked interrupted fit assessments as failed");
+    }
+  } catch (err) {
+    // migration 0002 未適用でも /dossiers は提供し続ける（/assessments は実行時にエラーになる）
+    logger.warn({ err }, "fit_assessments unavailable — apply 0002_fit.sql");
+  }
+  const fitOrchestrator = new FitOrchestrator({
+    logger,
+    companyRepo,
+    contentRepo: scrapedRepo,
+    fitRepo,
+    queue,
+    enumerator,
+    careersProbe: new CareersProbe({
+      conditionalGet,
+      robots,
+      rateLimiter,
+      userAgent: env.USER_AGENT,
+      timeoutMs: env.LIGHT_HTTP_TIMEOUT_MS,
+    }),
+    // ANTHROPIC_API_KEY は DossierGenerator のコンストラクタで存在確認済み
+    extractor: new SignalExtractor(
+      new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }),
+      { model: env.FIT_MODEL, maxContextTokens: env.FIT_MAX_CONTEXT_TOKENS },
+    ),
+    model: env.FIT_MODEL,
+  });
+
   // --- cron ---
   const poller = new FreshnessPoller(env, logger, sourceRepo, queue);
   poller.start();
@@ -125,6 +165,7 @@ async function main(): Promise<void> {
   });
   registerHealthRoute(app, db);
   registerDossierRoute(app, orchestrator);
+  registerAssessmentRoutes(app, { orchestrator: fitOrchestrator, fitRepo });
 
   const port = Number(process.env["PORT"] ?? 3000);
   await app.listen({ port, host: "0.0.0.0" });
