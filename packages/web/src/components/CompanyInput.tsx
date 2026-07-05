@@ -44,7 +44,7 @@ export function CompanyInput({ onSubmitted }: { onSubmitted: (id: string) => voi
       <div className="form-row">
         <input
           type="url"
-          placeholder="https://example.co.jp"
+          placeholder="https://demo-company.example"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
         />

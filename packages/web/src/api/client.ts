@@ -8,6 +8,14 @@ import type {
   MismatchReason,
   NeedLevel,
 } from "@sa/shared/types/fit";
+import {
+  getMockAssessment,
+  getMockListItems,
+  mockCreateAssessment,
+  mockSaveHumanReview,
+} from "./mock-data";
+
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
 export class ApiError extends Error {
   constructor(
@@ -34,16 +42,30 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function getAssessments(): Promise<{ items: AssessmentListItem[] }> {
+  if (USE_MOCK) {
+    return Promise.resolve({ items: getMockListItems() });
+  }
   return request("/assessments");
 }
 
 export function getAssessment(id: string): Promise<FitAssessment> {
+  if (USE_MOCK) {
+    const a = getMockAssessment(id);
+    if (!a) {
+      return Promise.reject(new ApiError(404, "not_found", "assessment が見つかりません"));
+    }
+    return Promise.resolve({ ...a });
+  }
   return request(`/assessments/${id}`);
 }
 
 export function createAssessment(
   input: AssessmentInput,
 ): Promise<{ assessmentId: string; status: "running" }> {
+  if (USE_MOCK) {
+    void input;
+    return Promise.resolve(mockCreateAssessment());
+  }
   return request("/assessments", { method: "POST", body: JSON.stringify(input) });
 }
 
@@ -51,6 +73,14 @@ export function saveHumanReview(
   id: string,
   review: { needLevel: NeedLevel; mismatchReason: MismatchReason | null },
 ): Promise<FitAssessment> {
+  if (USE_MOCK) {
+    return Promise.resolve(
+      mockSaveHumanReview(id, {
+        ...review,
+        reviewedAt: new Date().toISOString(),
+      }),
+    );
+  }
   return request(`/assessments/${id}/human-review`, {
     method: "PATCH",
     body: JSON.stringify(review),
