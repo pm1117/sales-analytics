@@ -637,3 +637,41 @@ company_name,domain,human_need_level,human_labeled_at,ai_need_level,match,mismat
 10. [ ] `server/routes/assessment.ts` + index.ts 配線 + markInterrupted（§A-4, §B-1）
 11. [ ] `packages/web` 一式（§B-3, §D）
 12. [ ] 10 社評価（§E-2 → `docs/ui/fit-validation-results.md` / `.csv`）
+
+
+## プロンプト
+
+```
+@docs/ui/fit-validation-design.md と @docs/ui/fit-validation-requirements.md を前提に、
+docs/ui/fit-validation-detailed-design.md を作成してください。
+実装者がそのままコードを書ける粒度まで落としてください。
+
+## 含めること
+### A. 型・契約
+- FitAssessment, Signal, Evidence, NeedLevel 等の TypeScript 型
+- API request/response（OpenAPI 風の Markdown で可）
+- LLM structured output の JSON スキーマ
+### B. モジュール構成
+- packages/collector への追加ファイル一覧（例: fit-scorer.ts, fit-prompt.ts）
+- packages/web（新規）のディレクトリ構成
+- @sa/shared に置く型
+### C. Fit 判定ロジック
+- シグナル定義表（requirements の判断材料と1:1対応）
+- 各シグナルのプロンプト断片（system / user テンプレート）
+- need_level の集約ルール（例: 強シグナル2つ以上 → high）
+- 収集データ不足時の fallback
+### D. UI 詳細
+- ルート: /, /assessments/:id 等
+- コンポーネント: CompanyInput, FitResult, SignalCard, OutreachDraft
+- 状態管理（TanStack Query 等）
+- ローディング中 UX（収集+判定は数分かかる想定）
+### E. 評価用
+- poc-output/bpio.co.jp/ をモック入力に使う手順
+- 10社評価シート（CSV テンプレ: 企業名, 人間判定, AI判定, メモ）
+### F. テスト方針
+- プロンプト出力の snapshot テスト
+- 集約ロジックのユニットテスト
+
+## 書かないこと
+- 実際のソースコード（型定義の疑似コードまでは OK）
+```

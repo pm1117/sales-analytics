@@ -384,3 +384,41 @@ CREATE INDEX ON fit_assessments (company_id, created_at DESC);
 8. 10 社評価の実施（`docs/ui/fit-validation-results.md` に記録 — 要件 §8）
 
 CLI（手順 5）まで到達すれば UI がなくても仮説検証は開始できる。UI は評価と並行して進める。
+
+
+## プロンプト
+```
+@docs/ui/fit-validation-requirements.md を前提に、
+docs/ui/fit-validation-design.md を新規作成してください。
+## 設計方針
+- **仮説検証 PoC**。拡張性より「1〜2週間で動く」
+- 収集層は packages/collector をそのまま使う（Gate0〜4、Crawl4AI）
+- **新規に足すのは「Fit 判定」層**（収集 Markdown → シグナル抽出 → need 判定）
+- UI は最小（1〜3 画面）
+## 決めてほしいこと
+1. 全体アーキテクチャ（図: mermaid）
+   - 既存: collector API / DB / crawler
+   - 新規: fit-scorer（LLM）、web UI
+2. Fit 判定パイプライン
+   - 入力: company URL
+   - 収集: 既存 orchestrator 再利用
+   - 分析: 新プロンプト（シグナルごとに evidence 付き）
+   - 出力: FitAssessment JSON
+3. API 設計（新規エンドポイント案）
+   - 例: POST /assessments { companyNameOrUrl }
+   - 既存 POST /dossiers との関係（置き換え / 並存）
+4. データ永続化方針
+   - PoC では DB必須か、JSON ファイル保存で足りるか
+5. UI 構成
+   - 画面一覧と遷移
+   - 主要画面のワイヤ（テキストで OK）
+6. LLM プロンプト設計方針
+   - ハルシネーション対策（出典なしは unknown）
+   - シグナルごとの structured output
+7. 技術選定（web フロント、BFF の要否）
+8. リスク（誤判定、採用ページ取れない、法務）
+## 制約
+- フォーム自動送信はスコープ外
+- product-concept の「7章カルテ」構成は採用しない
+- 実装コードはまだ書かない
+```
