@@ -1,4 +1,11 @@
-import type { Company, Env, FeedKind, Source, SourceKind } from "@sa/shared";
+import type {
+  Company,
+  Env,
+  FeedKind,
+  SeedUrl,
+  Source,
+  SourceKind,
+} from "@sa/shared";
 import { canonicalizeUrl } from "../compliance/url-canonical";
 import type { RobotsGuard } from "../compliance/robots";
 import type { SourceRepo } from "../storage/repositories/source-repo";
@@ -19,10 +26,26 @@ export class SourceEnumerator {
     private readonly robots: RobotsGuard,
   ) {}
 
-  async ensureSources(company: Company): Promise<Source[]> {
+  async ensureSources(
+    company: Company,
+    seedUrls: SeedUrl[] = [],
+  ): Promise<Source[]> {
     const existing = await this.sourceRepo.listByCompany(company.id);
-    if (existing.length > 0) return existing;
+    const sources =
+      existing.length > 0 ? [...existing] : await this.bootstrap(company);
 
+    // Fit 判定の手動シード（詳細設計 §B-1）。既存 canonical と重複しないものだけ登録する。
+    const known = new Set(sources.map((s) => s.canonicalUrl));
+    for (const seed of seedUrls) {
+      const canonical = canonicalizeUrl(seed.url);
+      if (known.has(canonical)) continue;
+      sources.push(await this.register(company, seed.kind, seed.url));
+      known.add(canonical);
+    }
+    return sources;
+  }
+
+  private async bootstrap(company: Company): Promise<Source[]> {
     const base = `https://${company.domain}`;
     const created: Source[] = [];
 
