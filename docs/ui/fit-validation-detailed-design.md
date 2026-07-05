@@ -251,7 +251,7 @@ LLM 出力に `strength` / `checkedAt` / `source` は**含めない**（カタ�
 | ファイル | 責務 / 公開インターフェース（疑似シグネチャ） |
 |---|---|
 | `src/fit/fit-orchestrator.ts` | パイプライン制御。`class FitOrchestrator { constructor(deps: { companyRepo, sourceRepo, contentRepo, fitRepo, queue, enumerator, careersProbe, extractor, judge, logger }); run(assessmentId: string, input: AssessmentInput): Promise<void> }` — §C-6 のフローを直列実行。**throw しない**（全例外を catch して `fitRepo.finishFailure`） |
-| `src/fit/signal-extractor.ts` | LLM 抽出。`class SignalExtractor { constructor(client: Anthropic, opts: { model, maxContextTokens }); extract(input: ExtractionInput): Promise<ExtractionResult> }`。`ExtractionInput = { company: {name, domain}, snippets: ContentSnippet[], allowedUrls: string[] }`、`ContentSnippet = { url, sourceKind, fetchedAt, markdown }`、`ExtractionResult = { signals: RawSignal[], usage: {inputTokens, outputTokens}, droppedEvidenceCount: number }`。zod 失敗時 1 回だけリトライ（エラー内容を追記して再送）→ 失敗なら throw |
+| `src/fit/signal-extractor.ts` | LLM 抽出。`class SignalExtractor { constructor(client: Anthropic, opts: { model, maxContextTokens }); extract(input: ExtractionInput): Promise<ExtractionResult> }`。`ExtractionInput = { company: {name, domain}, snippets: ContentSnippet[], allowedUrls: string[], today: string }`（today は呼び出し側供給 — プロンプトを決定的にし snapshot 可能にする）、`ContentSnippet = { url, sourceKind, fetchedAt, markdown }`、`ExtractionResult = { signals: RawSignal[], usage: {inputTokens, outputTokens}, droppedSnippetUrls: string[] }`（droppedSnippetUrls = 予算超過で落としたソース。evidence の URL 突合と破棄件数は §C-5 手順 1 の `filterEvidence` の責務）。zod 失敗時 1 回だけリトライ（エラー内容を追記して再送）→ 失敗なら throw ※PR3 実装反映（2026-07-05） |
 | `src/fit/fit-prompt.ts` | プロンプト組み立て。`PROMPT_VERSION = "v1"`、`RECORD_SIGNALS_TOOL`（§A-6）、`buildFitSystemPrompt(catalog: SignalDef[]): string`、`buildFitUserMessage(input: ExtractionInput): string`（§C-2 のテンプレート） |
 | `src/fit/evidence-filter.ts` | 捏造ガード（純関数・単体テスト対象）。`filterEvidence(raw: RawSignal[], allowedUrls: Set<string>, checkedAt: string): { signals: SignalResult[], droppedCount: number }` — URL 逸脱 evidence 破棄 → evidence 0 件のシグナルを detected=false に落とす → strength/source/checkedAt を付与 |
 | `src/fit/merge-manual.ts` | `mergeManualInputs(signals: SignalResult[], manual: ManualInput[]): SignalResult[]` — manualInput を該当シグナルの evidence（source="manual"）として追加し detected=true にする。純関数 |
@@ -466,7 +466,7 @@ minimumMet    = collection.careersChecked && collection.jobsInfoCount≥1 && col
 
 ### C-5. extract 後処理の順序（FitOrchestrator 内、すべて純関数）
 
-1. `filterEvidence(raw, allowedUrls, today)` — URL 逸脱 evidence 破棄（破棄件数をログ + `droppedEvidenceCount`）→ evidence 0 件を detected=false 化 → strength/source/checkedAt 付与
+1. `filterEvidence(raw, allowedUrls, today)` — URL 逸脱 evidence 破棄（破棄件数をログ + `droppedCount`）→ evidence 0 件を detected=false 化 → strength/source/checkedAt 付与
 2. 1-5 のプローブ結果上書き（§C-1 補足: foundUrl が null なら detected=true / counter）
 3. `mergeManualInputs(signals, input.manualInputs)` — source="manual" の evidence を追加、detected=true 化。**manualInputs の URL は allowedUrls 制約の対象外**（人間確認済みのため）
 4. `judge({ signals, collection })` — §C-3
@@ -564,7 +564,7 @@ pnpm tsx packages/collector/src/scripts/assess-poc.ts --offline poc-output/<samp
 2. `<dir>/summary.json` から company（name / domain）を読む
 3. `allowedUrls` = contents 内の URL 全件。careersCheck はダミー（`--careers-found <url>` / `--careers-none` フラグで注入可、省略時は「未確認」= minimumMet が偽）
 4. `SignalExtractor.extract` → §C-5 の後処理 → `judge` を実行し、`<dir>/fit-judgement.json` と `fit-judgement.md` を書き出す（DB には書かない）
-5. 標準出力に needLevel / 検出シグナル / droppedEvidenceCount / トークン数を要約表示
+5. 標準出力に needLevel / 検出シグナル / evidence 破棄件数（droppedCount）・予算超過で落としたソース / トークン数を要約表示
 
 **サンプルドメインの期待結果**: careers・求人媒体コンテンツが無いため `needLevel: "unknown"`（収集最低要件未達）。これ自体が判定行 1（§C-3）の動作確認になる。3-1（新サービスリリース）がプレスリリースから検出されるかがプロンプトの初回確認ポイント。
 
