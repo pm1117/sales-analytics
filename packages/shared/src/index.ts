@@ -3,5 +3,8 @@ export * from "./logger";
 export * from "./compliance-policy";
 export * from "./types/domain";
 export * from "./types/fetch";
+export * from "./types/fit";
 export * from "./types/crawler-contract";
 export * from "./schemas/crawler";
+export * from "./schemas/fit";
+export * from "./fit/signal-catalog";

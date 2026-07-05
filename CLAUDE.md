@@ -24,8 +24,10 @@
 
 ### Fit 判定 PoC 実装
 
-実装フェーズのブランチ・PR・コミット手順は `.claude/skills/fit-implement/SKILL.md`（`/fit-implement`）に従う。
+実装フェーズのブランチ・PR・コミット・**push 前の設計突合レビュー**は
+`.claude/skills/fit-implement/SKILL.md`（`/fit-implement`）に従う。
 設計の正は `docs/ui/fit-validation-detailed-design.md`。
+PR の機械検証は `.github/workflows/ci.yml`（typecheck + test）。
 
 ### 自動型チェックの挙動
 
