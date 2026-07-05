@@ -3,8 +3,17 @@
  * SNS/ニュースは現状スコープ外だが、enum に 'x_post'|'note_article' を足すだけで拡張可能。
  */
 
-export type SourceType = "corporate_hp" | "press_release";
-export type SourceKind = "corporate_hp" | "careers" | "press_feed" | "news_feed";
+export type SourceType =
+  | "corporate_hp"
+  | "press_release"
+  | "careers_page"   // 自社採用ページ本文（Fit 判定 PoC / 0002_fit.sql）
+  | "job_posting";   // 求人媒体の求人票（同上）
+export type SourceKind =
+  | "corporate_hp"
+  | "careers"
+  | "press_feed"
+  | "news_feed"
+  | "jobs_media";    // 求人媒体（Wantedly/Green 等、自動収集可のもの。0002_fit.sql）
 export type FeedKind = "rss" | "atom" | "sitemap";
 
 export type FetchMethod =

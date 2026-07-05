@@ -8,9 +8,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p packages/web --noEmit",
     "dev:collector": "tsx watch packages/collector/src/index.ts",
     "start:collector": "tsx packages/collector/src/index.ts",
+    "dev:web": "pnpm --filter @sa/web dev",
+    "dev:web:mock": "VITE_USE_MOCK=true pnpm --filter @sa/web dev",
     "test": "vitest run"
   },
   "devDependencies": {
