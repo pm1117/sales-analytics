@@ -62,6 +62,10 @@ const EnvSchema = z.object({
   DOSSIER_MODEL: z.string().default("claude-opus-4-8"),
   DOSSIER_MAX_CONTEXT_TOKENS: intFromEnv(180_000),
 
+  // --- Fit 判定（シグナル抽出時のみ）。default は DOSSIER 側と同値 ---
+  FIT_MODEL: z.string().default("claude-opus-4-8"),
+  FIT_MAX_CONTEXT_TOKENS: intFromEnv(180_000),
+
   // --- Freshness cron ---
   FRESHNESS_POLL_CRON: z.string().default("0 */6 * * *"),
   FRESHNESS_POLL_ENABLED: boolFromEnv(true),

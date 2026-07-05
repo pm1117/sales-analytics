@@ -10,6 +10,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./packages/collector/src/storage/schema.sql:/docker-entrypoint-initdb.d/0001_init.sql:ro
+      - ./packages/collector/src/storage/migrations/0002_fit.sql:/docker-entrypoint-initdb.d/0002_fit.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app -d sales_analytics"]
       interval: 5s
